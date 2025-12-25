@@ -1,22 +1,18 @@
 import axios, { AxiosResponse } from "axios";
 import { Lecture } from "../types.ts";
 
-let majorsCache: Promise<AxiosResponse<Lecture[]>> | null = null;
-let liberalArtsCache: Promise<AxiosResponse<Lecture[]>> | null = null;
-
-export const fetchMajors = (): Promise<AxiosResponse<Lecture[]>> => {
-  if (!majorsCache) {
-    majorsCache = axios.get<Lecture[]>("/schedules-majors.json");
-  }
-  return majorsCache;
+const createCachedFetcher = <T>(url: string) => {
+  let cache: Promise<AxiosResponse<T>> | null = null;
+  return () => {
+    if (!cache) {
+      cache = axios.get<T>(url);
+    }
+    return cache;
+  };
 };
 
-export const fetchLiberalArts = (): Promise<AxiosResponse<Lecture[]>> => {
-  if (!liberalArtsCache) {
-    liberalArtsCache = axios.get<Lecture[]>("/schedules-liberal-arts.json");
-  }
-  return liberalArtsCache;
-};
+export const fetchMajors = createCachedFetcher<Lecture[]>("/schedules-majors.json");
+export const fetchLiberalArts = createCachedFetcher<Lecture[]>("/schedules-liberal-arts.json");
 
 export const fetchAllLectures = () =>
   Promise.all([
